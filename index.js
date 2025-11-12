@@ -1,7 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
-const verifyFirebaseToken = require("./verifyFirebaseToken");
+// const verifyFirebaseToken = require("./verifyFirebaseToken");
 const app = express();
 const port = 3000;
 
@@ -12,18 +12,8 @@ const admin = require("firebase-admin");
 var serviceAccount = require("./service.json");
 
 admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount)
+  credential: admin.credential.cert(serviceAccount),
 });
-
-
-
-
-
-
-
-
-
-
 
 // Middlewares
 app.use(cors());
@@ -44,83 +34,81 @@ const client = new MongoClient(uri, {
   },
 });
 
-
 // create middleware
 const verifyToken = async (req, res, next) => {
   try {
     const AuthorizationToken = req.headers.authorization;
 
-    
     if (!AuthorizationToken) {
-      return res.status(401).json({ message: "unauthorized: no token provided" });
+      return res
+        .status(401)
+        .json({ message: "unauthorized: no token provided" });
     }
 
     const token = AuthorizationToken.split(" ")[1];
 
-    
     if (!token) {
-      return res.status(401).json({ message: "unauthorized: invalid token format" });
+      return res
+        .status(401)
+        .json({ message: "unauthorized: invalid token format" });
     }
 
-    
     const decodedUser = await admin.auth().verifyIdToken(token);
-    req.user = decodedUser; 
+    req.user = decodedUser;
 
     next();
-
   } catch (error) {
     console.error("Token verify error:", error.message);
-    return res.status(403).json({ message: "forbidden: invalid or expired token" });
+    return res
+      .status(403)
+      .json({ message: "forbidden: invalid or expired token" });
   }
 };
-
-
 
 async function run() {
   try {
     await client.connect();
     const db = client.db("conceptual_session-1");
     const modelCollection = db.collection("conceptual_db");
-    const downloadCollection = db.collection('download')
+    const downloadCollection = db.collection("download");
 
-    app.get("/models",  async (req, res) => {
-      console.log("foysal")
+    app.get("/models", async (req, res) => {
+      console.log("foysal");
       const result = await modelCollection.find().toArray();
       res.send(result);
     });
 
+    app.get("/models/latest", async (req, res) => {
+      try {
+        const result = await modelCollection
+          .find()
+          .sort({ created_at: -1 }) // latest first
+          .limit(6) // show only 6 items (change if needed)
+          .toArray();
 
-       app.get('/models/latest', async (req, res) => {
-  try {
-    const result = await modelCollection
-      .find()
-      .sort({ created_at: -1 }) // latest first
-      .limit(6) // show only 6 items (change if needed)
-      .toArray();
+        res.send(result);
+      } catch (error) {
+        res.status(500).send({ error: "Something went wrong!" });
+      }
+    });
 
-    res.send(result);
-  } catch (error) {
-    res.status(500).send({ error: "Something went wrong!" });
-  }
-});
+    // by mail
 
-
-// by mail
-
-// Fetch models by logged-in user's email
-app.get('/my-models', verifyToken, async (req, res) => {
-  try {
-    const userEmail = req.user.email; 
-    const result = await modelCollection.find({ created_by: userEmail }).toArray();
-    res.json({ success: true, result });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ success: false, message: "Failed to fetch models" });
-  }
-});
-
-
-
+    // Fetch models by logged-in user's email
+    app.get("/my-models", verifyToken, async (req, res) => {
+      try {
+        const userEmail = req.user.email;
+        const result = await modelCollection
+          .find({ created_by: userEmail })
+          .toArray();
+        res.json({ success: true, result });
+      } catch (err) {
+        console.error(err);
+        res
+          .status(500)
+          .json({ success: false, message: "Failed to fetch models" });
+      }
+    });
 
     app.get("/models/:id", verifyToken, async (req, res) => {
       const { id } = req.params;
@@ -162,55 +150,44 @@ app.get('/my-models', verifyToken, async (req, res) => {
       });
     });
 
+    app.delete("/models/:id", async (req, res) => {
+      const { id } = req.params;
+      const result = await modelCollection.deleteOne({ _id: new ObjectId(id) });
 
-
-    app.delete('/models/:id', async(req, res) =>{
-      const {id} = req.params;
-      const  result = await modelCollection.deleteOne({_id: new ObjectId(id)})
-
-      res.send(
-        {
-          success: true
-        }
-      )
+      res.send({
+        success: true,
+      });
     });
 
+    app.post("/downloads", async (req, res) => {
+      const data = req.body;
+      const result = await downloadCollection.insertOne(data);
+      res.send(result);
+    });
 
+    app.get("/my-downloads", verifyToken, async (req, res) => {
+      try {
+        const email = req.query.email;
+        if (!email) {
+          return res
+            .status(400)
+            .json({ success: false, message: "Email parameter missing" });
+        }
 
- 
-app.post('/downloads',async(req, res) =>{
-  const data = req.body;
-  const result = await downloadCollection.insertOne(data);
-  res.send(result)
+        const result = await downloadCollection
+          .find({
+            downloadedBy: email,
+          })
+          .toArray();
 
-
-} );
-
-
-app.get("/my-downloads", verifyToken, async (req, res) => {
-  try {
-    const email = req.query.email; // query parameter থেকে email নাও
-    if (!email) {
-      return res.status(400).json({ success: false, message: "Email parameter missing" });
-    }
-
-    const result = await downloadCollection.find({ downloaded_by: email }).toArray();
-
-    res.json({ success: true, result }); // এখন frontend ঠিকভাবে পাবো
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ success: false, message: "Failed to fetch downloads" });
-  }
-});
-
-
-
-
-
-
-
-
-
+        res.json({ success: true, result });
+      } catch (err) {
+        console.error(err);
+        res
+          .status(500)
+          .json({ success: false, message: "Failed to fetch downloads" });
+      }
+    });
 
     await client.db("admin").command({ ping: 1 });
     console.log(
@@ -224,7 +201,7 @@ app.get("/my-downloads", verifyToken, async (req, res) => {
 run().catch(console.dir);
 
 app.get("/", (req, res) => {
-  res.send("Hello Worldddd!");
+  res.send("My Assignment !");
 });
 
 app.listen(port, () => {
