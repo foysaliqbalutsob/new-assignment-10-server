@@ -175,6 +175,25 @@ app.post("/contributions", async (req, res) => {
 });
 
 
+// GET /contributions/:issueId
+app.get("/contributions/:issueId", async (req, res) => {
+  const issueId = req.params.issueId;
+  const result = await contributionCollection.find({ issueId }).toArray();
+  res.send({ success: true, result });
+});
+
+app.get("/contributions/issue/:issueId", async (req, res) => {
+  const { issueId } = req.params;
+  try {
+    const contributions = await db.collection("contributions").find({ issueId }).toArray();
+    res.json({ success: true, result: contributions });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+});
+
+
 
 
 
