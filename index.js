@@ -71,6 +71,7 @@ async function run() {
     const db = client.db("conceptual_session-1");
     const modelCollection = db.collection("conceptual_db");
     const downloadCollection = db.collection("download");
+    const contributionCollection = db.collection("contributions");
 
     app.get("/models", async (req, res) => {
       console.log("foysal");
@@ -99,7 +100,7 @@ async function run() {
       try {
         const userEmail = req.user.email;
         const result = await modelCollection
-          .find({ created_by: userEmail })
+          .find({ email: userEmail })
           .toArray();
         res.json({ success: true, result });
       } catch (err) {
@@ -165,6 +166,20 @@ async function run() {
       res.send(result);
     });
 
+
+    // POST /contributions
+app.post("/contributions", async (req, res) => {
+  const contribution = req.body;
+  const result = await contributionCollection.insertOne(contribution);
+  res.send({ success: true, result });
+});
+
+
+
+
+
+
+
     app.get("/my-downloads", verifyToken, async (req, res) => {
       try {
         const email = req.query.email;
@@ -207,3 +222,5 @@ app.get("/", (req, res) => {
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}`);
 });
+
+
