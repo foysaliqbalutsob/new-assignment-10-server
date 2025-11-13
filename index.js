@@ -83,8 +83,8 @@ async function run() {
       try {
         const result = await modelCollection
           .find()
-          .sort({ created_at: -1 }) // latest first
-          .limit(6) // show only 6 items (change if needed)
+          .sort({ date: -1 })
+          .limit(6) 
           .toArray();
 
         res.send(result);
@@ -95,7 +95,7 @@ async function run() {
 
     // by mail
 
-    // Fetch models by logged-in user's email
+    
     app.get("/my-models", verifyToken, async (req, res) => {
       try {
         const userEmail = req.user.email;
@@ -127,7 +127,7 @@ async function run() {
       try {
         const newModel = req.body;
         await modelCollection.insertOne(newModel);
-        res.json({ message: "Model added successfully" }); // <-- JSON response
+        res.json({ message: "Model added successfully" }); 
       } catch (err) {
         console.error(err);
         res.status(500).json({ error: "Failed to add model" });
@@ -141,8 +141,8 @@ async function run() {
 
       const objId = new ObjectId(id);
       const result = await modelCollection.updateOne(
-        { _id: objId }, // filter
-        { $set: data } // update fields
+        { _id: objId },
+        { $set: data } 
       );
 
       res.send({
@@ -195,7 +195,7 @@ app.get("/contributions/issue/:issueId", async (req, res) => {
 
 app.get("/contributions", async (req, res) => {
   try {
-    const email = req.query.email; // ?email=foysal@gmail.com
+    const email = req.query.email; 
 
     if (!email) {
       return res.send({ success: false, message: "Email is required" });
