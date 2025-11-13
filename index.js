@@ -193,6 +193,24 @@ app.get("/contributions/issue/:issueId", async (req, res) => {
   }
 });
 
+app.get("/contributions", async (req, res) => {
+  try {
+    const email = req.query.email; // ?email=foysal@gmail.com
+
+    if (!email) {
+      return res.send({ success: false, message: "Email is required" });
+    }
+
+    const result = await contributionCollection.find({ email }).toArray();
+
+    res.send({ success: true, result });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send({ success: false, message: "Server error" });
+  }
+});
+
+
 
 
 
