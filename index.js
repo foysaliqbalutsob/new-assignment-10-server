@@ -19,7 +19,7 @@ admin.initializeApp({
 app.use(cors());
 app.use(express.json());
 
-// 3D_model
+// 
 // vItpsmBYYU96qsXE
 
 const uri =
@@ -209,6 +209,16 @@ app.get("/contributions", async (req, res) => {
     res.status(500).send({ success: false, message: "Server error" });
   }
 });
+
+app.get("/search", async (req, res) => {
+  const query = req.query.q;
+  const result = await modelCollection
+    .find({ title: { $regex: query, $options: "i" } })
+    .toArray();
+  res.send(result);
+});
+
+
 
 
 
