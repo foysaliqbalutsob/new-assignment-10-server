@@ -71,14 +71,14 @@ const verifyToken = async (req, res, next) => {
 
 async function run() {
   try {
-    await client.connect();
+    // await client.connect();
     const db = client.db("conceptual_session-1");
     const modelCollection = db.collection("conceptual_db");
     const downloadCollection = db.collection("download");
     const contributionCollection = db.collection("contributions");
 
     app.get("/models", async (req, res) => {
-      console.log("foysal");
+      // console.log("foysal");
       const result = await modelCollection.find().toArray();
       res.send(result);
     });
@@ -164,11 +164,11 @@ async function run() {
       });
     });
 
-    app.post("/downloads", async (req, res) => {
-      const data = req.body;
-      const result = await downloadCollection.insertOne(data);
-      res.send(result);
-    });
+    // app.post("/downloads", async (req, res) => {
+    //   const data = req.body;
+    //   const result = await downloadCollection.insertOne(data);
+    //   res.send(result);
+    // });
 
 
     // POST /contributions
@@ -231,31 +231,31 @@ app.get("/search", async (req, res) => {
 
 
 
-    app.get("/my-downloads", verifyToken, async (req, res) => {
-      try {
-        const email = req.query.email;
-        if (!email) {
-          return res
-            .status(400)
-            .json({ success: false, message: "Email parameter missing" });
-        }
+    // app.get("/my-downloads", verifyToken, async (req, res) => {
+    //   try {
+    //     const email = req.query.email;
+    //     if (!email) {
+    //       return res
+    //         .status(400)
+    //         .json({ success: false, message: "Email parameter missing" });
+    //     }
 
-        const result = await downloadCollection
-          .find({
-            downloadedBy: email,
-          })
-          .toArray();
+    //     const result = await downloadCollection
+    //       .find({
+    //         downloadedBy: email,
+    //       })
+    //       .toArray();
 
-        res.json({ success: true, result });
-      } catch (err) {
-        console.error(err);
-        res
-          .status(500)
-          .json({ success: false, message: "Failed to fetch downloads" });
-      }
-    });
+    //     res.json({ success: true, result });
+    //   } catch (err) {
+    //     console.error(err);
+    //     res
+    //       .status(500)
+    //       .json({ success: false, message: "Failed to fetch downloads" });
+    //   }
+    // });
 
-    await client.db("admin").command({ ping: 1 });
+    // await client.db("admin").command({ ping: 1 });
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!"
     );
