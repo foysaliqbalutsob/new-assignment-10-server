@@ -1,13 +1,18 @@
 const express = require("express");
 const cors = require("cors");
+
+
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 // const verifyFirebaseToken = require("./verifyFirebaseToken");
+
+
 const app = express();
 const port = 3000;
 
 // Enable CORS and JSON parsing
 
 const admin = require("firebase-admin");
+require('dotenv').config()
 
 var serviceAccount = require("./service.json");
 
@@ -19,11 +24,10 @@ admin.initializeApp({
 app.use(cors());
 app.use(express.json());
 
-// 
-// vItpsmBYYU96qsXE
+
 
 const uri =
-  "mongodb+srv://3D_model:vItpsmBYYU96qsXE@cluster0.um9bwdr.mongodb.net/?appName=Cluster0";
+  `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.um9bwdr.mongodb.net/?appName=Cluster0`;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
