@@ -100,7 +100,7 @@ async function run() {
     // by mail
 
     
-    app.get("/my-models", verifyToken, async (req, res) => {
+    app.get("/my-models",verifyToken,  async (req, res) => {
       try {
         const userEmail = req.user.email;
         const result = await modelCollection
@@ -197,7 +197,7 @@ app.get("/contributions/issue/:issueId", async (req, res) => {
   }
 });
 
-app.get("/contributions", async (req, res) => {
+app.get("/contributions",verifyToken, async (req, res) => {
   try {
     const email = req.query.email; 
 
